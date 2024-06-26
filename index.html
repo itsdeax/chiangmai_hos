@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <title>ฟอร์มรับคิวโรงพยาบาล</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+      }
+      .form-container {
+        background-color: white;
+        padding: 40px;
+        border-radius: 8px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 600px;
+      }
+      h1 {
+        text-align: center;
+        color: #333;
+      }
+      label {
+        font-weight: bold;
+        display: block;
+        margin-top: 20px;
+        color: #555;
+      }
+      input[type="text"], input[type="tel"], select {
+        width: calc(100% - 20px);
+        padding: 10px;
+        margin-top: 5px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 16px;
+      }
+      input[type="submit"] {
+        width: 100%;
+        padding: 12px;
+        margin-top: 20px;
+        background-color: #4CAF50;
+        border: none;
+        color: white;
+        font-weight: bold;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+      }
+      input[type="submit"]:hover {
+        background-color: #45a049;
+      }
+      #result {
+        margin-top: 20px;
+        text-align: center;
+        font-size: 1.2em;
+        color: green;
+      }
+    </style>
+    <script>
+      function submitForm() {
+        var phone = document.getElementById('phone').value;
+        
+        if (!/^\d{10}$/.test(phone)) {
+          alert('กรุณากรอกเบอร์โทรศัพท์ให้ครบ 10 หลัก');
+          return;
+        }
+
+        var data = {
+          prefix: document.getElementById('prefix').value,
+          name: document.getElementById('name').value,
+          surname: document.getElementById('surname').value,
+          phone: phone,
+          userId: 'ใส่ User ID ที่ได้รับมาจาก LINE ที่นี่'
+        };
+
+        google.script.run
+          .withSuccessHandler(function(response) {
+            document.getElementById('result').innerText = response;
+          })
+          .submitData(data);
+      }
+
+      // Function to get User ID from LINE Messaging API
+      function getUserId() {
+        // Replace with your Channel Access Token
+        var accessToken = 'ใส่ Channel Access Token ของคุณที่นี่';
+
+        // Replace with your User ID endpoint URL
+        var url = 'https://api.line.me/v2/profile';
+
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', url, true);
+        xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
+        xhr.onreadystatechange = function() {
+          if (xhr.readyState === 4 && xhr.status === 200) {
+            var profile = JSON.parse(xhr.responseText);
+            document.getElementById('userId').value = profile.userId;
+          }
+        };
+        xhr.send();
+      }
+
+      // Call getUserId() function when the page loads
+      window.onload = function() {
+        getUserId();
+      };
+    </script>
+  </head>
+  <body>
+    <div class="form-container">
+      <h1>ฟอร์มรับคิวโรงพยาบาล</h1>
+      <form onsubmit="event.preventDefault(); submitForm();">
+        <label>คำนำหน้า:</label>
+        <select id="prefix" required>
+          <option value="นาย">นาย</option>
+          <option value="นาง">นาง</option>
+          <option value="นางสาว">นางสาว</option>
+        </select>
+        <label>ชื่อ:</label>
+        <input type="text" id="name" required>
+        <label>นามสกุล:</label>
+        <input type="text" id="surname" required>
+        <label>เบอร์โทรศัพท์:</label>
+        <input type="tel" id="phone" pattern="\d{10}" required><br><br>
+        <input type="hidden" id="userId" name="userId">
+        <input type="submit" value="ส่งข้อมูล">
+      </form>
+      <div id="result"></div>
+    </div>
+  </body>
+</html>
